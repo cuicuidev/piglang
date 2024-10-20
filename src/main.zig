@@ -2,7 +2,7 @@ const std = @import("std");
 
 pub fn main() !void {
     const source_code =
-        \\pub fn main() !void:
+        \\pub fn main() -> !void:
         \\    const x: u8 = 100
         \\    y: f32 = 69.0
         \\    
@@ -185,7 +185,7 @@ const Lexer = struct {
                 self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
 
                 if (next_char) |c| {
-                    if (isWhiteSpace(c) or isSymbol(c)) {
+                    if (isWhiteSpace(c) or isSymbol(c) or c == '\n') {
                         const token = Token{ .value = self.byte_buffer.slice, ._type = TokenType.INT_LITERAL };
                         try self.tokens.append(token);
                         self.state = LexerState.COMPLETE_TOKEN;
@@ -204,7 +204,7 @@ const Lexer = struct {
                 self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
 
                 if (next_char) |c| {
-                    if (isWhiteSpace(c) or isSymbol(c)) {
+                    if (isWhiteSpace(c) or isSymbol(c) or c == '\n') {
                         const token = Token{ .value = self.byte_buffer.slice, ._type = TokenType.FLOAT_LITERAL };
                         try self.tokens.append(token);
                         self.state = LexerState.COMPLETE_TOKEN;
