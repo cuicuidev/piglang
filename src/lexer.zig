@@ -121,8 +121,7 @@ pub const Lexer = struct {
                 self.state = LexerState.NEW_TOKEN;
             },
             LexerState.IDENTIFIER => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+                self._increment();
 
                 if (next_char) |c| {
                     if (!ascii.isAsciiLetterOrUnderscore(c) and !ascii.isDigit(c)) {
@@ -137,8 +136,7 @@ pub const Lexer = struct {
                 }
             },
             LexerState.INT_LITERAL => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+                self._increment();
 
                 if (next_char) |c| {
                     if (ascii.isWhiteSpace(c) or ascii.isSymbol(c) or c == '\n') {
@@ -156,8 +154,7 @@ pub const Lexer = struct {
                 }
             },
             LexerState.FLOAT_LITERAL => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+                self._increment();
 
                 if (next_char) |c| {
                     if (ascii.isWhiteSpace(c) or ascii.isSymbol(c) or c == '\n') {
@@ -172,8 +169,7 @@ pub const Lexer = struct {
                 }
             },
             LexerState.CHAR_LITERAL => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+                self._increment();
 
                 const c = next_char.?;
 
@@ -189,15 +185,13 @@ pub const Lexer = struct {
                 }
             },
             LexerState.STRING_LITERAL => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+                self._increment();
 
                 const c = next_char.?;
 
                 if (char != '\\') {
                     if (c == '"') {
-                        self.pos += 1;
-                        self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+                        self._increment();
 
                         const t = token.Token{ .value = self.byte_buffer.slice, ._type = token.TokenType.STRING_LITERAL };
                         try self.tokens.append(t);
@@ -206,8 +200,7 @@ pub const Lexer = struct {
                 }
             },
             LexerState.OPERATOR => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+                self._increment();
 
                 if (next_char) |c| {
                     if (!ascii.isSymbol(c)) {
@@ -222,50 +215,25 @@ pub const Lexer = struct {
                 }
             },
             LexerState.OPEN_PAREN => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
-                const t = token.Token{ .value = self.byte_buffer.slice, ._type = token.TokenType.OPEN_PAREN };
-                try self.tokens.append(t);
-                self.state = LexerState.COMPLETE_TOKEN;
+                try self._single_char_token(token.TokenType.OPEN_PAREN);
             },
             LexerState.CLOSE_PAREN => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
-                const t = token.Token{ .value = self.byte_buffer.slice, ._type = token.TokenType.CLOSE_PAREN };
-                try self.tokens.append(t);
-                self.state = LexerState.COMPLETE_TOKEN;
+                try self._single_char_token(token.TokenType.CLOSE_PAREN);
             },
             LexerState.OPEN_BRACKET => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
-                const t = token.Token{ .value = self.byte_buffer.slice, ._type = token.TokenType.OPEN_BRACKET };
-                try self.tokens.append(t);
-                self.state = LexerState.COMPLETE_TOKEN;
+                try self._single_char_token(token.TokenType.OPEN_BRACKET);
             },
             LexerState.CLOSE_BRACKET => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
-                const t = token.Token{ .value = self.byte_buffer.slice, ._type = token.TokenType.CLOSE_BRACKET };
-                try self.tokens.append(t);
-                self.state = LexerState.COMPLETE_TOKEN;
+                try self._single_char_token(token.TokenType.CLOSE_BRACKET);
             },
             LexerState.OPEN_CURLY_BRACE => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
-                const t = token.Token{ .value = self.byte_buffer.slice, ._type = token.TokenType.OPEN_CURLY_BRACE };
-                try self.tokens.append(t);
-                self.state = LexerState.COMPLETE_TOKEN;
+                try self._single_char_token(token.TokenType.OPEN_CURLY_BRACE);
             },
             LexerState.CLOSE_CURLY_BRACE => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
-                const t = token.Token{ .value = self.byte_buffer.slice, ._type = token.TokenType.CLOSE_CURLY_BRACE };
-                try self.tokens.append(t);
-                self.state = LexerState.COMPLETE_TOKEN;
+                try self._single_char_token(token.TokenType.CLOSE_CURLY_BRACE);
             },
             LexerState.WHITE_SPACE => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+                self._increment();
 
                 if (next_char) |c| {
                     if (!ascii.isWhiteSpace(c)) {
@@ -280,12 +248,20 @@ pub const Lexer = struct {
                 }
             },
             LexerState.LINE_BREAK => {
-                self.pos += 1;
-                self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
-                const t = token.Token{ .value = self.byte_buffer.slice, ._type = token.TokenType.LINE_BREAK };
-                try self.tokens.append(t);
-                self.state = LexerState.COMPLETE_TOKEN;
+                try self._single_char_token(token.TokenType.LINE_BREAK);
             },
         }
+    }
+
+    fn _increment(self: *Self) void {
+        self.pos += 1;
+        self.byte_buffer = StringSlice{ .slice = self.source[self.byte_buffer.start_idx..self.pos], .start_idx = self.byte_buffer.start_idx };
+    }
+
+    fn _single_char_token(self: *Self, token_type: token.TokenType) !void {
+        self._increment();
+        const t = token.Token{ .value = self.byte_buffer.slice, ._type = token_type };
+        try self.tokens.append(t);
+        self.state = LexerState.COMPLETE_TOKEN;
     }
 };
