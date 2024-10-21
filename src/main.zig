@@ -10,6 +10,11 @@ pub fn main() !void {
         \\    y += 420.0
         \\    y = y + @asFloat(f32, x)
         \\    
+        \\    z: u8 = 0b00011001
+        \\    i: f64 = 6.02214076e+23
+        \\    j: u16 = 0x18A8
+        \\    k: f32 = 3.14e+10-9
+        \\    
         \\    @println("Result: {d}", .{y})
     ;
 
